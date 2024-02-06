@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Initial parameters and seed production rates
+initial_seed_bank_weed = 1000
+initial_seed_bank_grass = 500
+germination_rate_weed = 0.5
+germination_rate_grass = 0.7
+seed_mortality_winter_weed = 0.1
+seed_mortality_winter_grass = 0.05
+competition_coefficient = 0.01
+control_efficiency = 0.5
+seed_production_rate_weed = 50
+seed_production_rate_grass = 100
+time_steps = 10
+
+# Arrays for simulation results
+seed_bank_weed = np.zeros(time_steps)
+seed_bank_grass = np.zeros(time_steps)
+seed_bank_weed[0] = initial_seed_bank_weed
+seed_bank_grass[0] = initial_seed_bank_grass
+
+# Competition and control functions
+def competition_effect(weed_density, grass_density, competition_coefficient):
+    """Calculates the effect of competition on plant survival."""
+    return 1 / (1 + competition_coefficient * (weed_density + grass_density))
+
+def weed_control_effectiveness(weed_density, control_efficiency):
+    """Applies weed control measures, reducing weed density based on control efficiency."""
+    return weed_density * (1 - control_efficiency)
+
+# Updated simulation loop
+for t in range(1, time_steps):
+    # Seeds germinate in spring
+    germinated_weed = germination_rate_weed * seed_bank_weed[t - 1]
+    germinated_grass = germination_rate_grass * seed_bank_grass[t - 1]
+
+    # Apply competition effects
+    competition_reduction = competition_effect(germinated_weed, germinated_grass, competition_coefficient)
+    weed_density_post_competition = germinated_weed * competition_reduction
+    weed_density_post_control = weed_control_effectiveness(weed_density_post_competition, control_efficiency)
+
+    # Calculate seed production by mature plants before they die in winter
+    seeds_produced_weed = weed_density_post_control * seed_production_rate_weed
+    seeds_produced_grass = germinated_grass * seed_production_rate_grass * competition_reduction
+
+    # Mature plants die in winter, only seeds remain
+    seed_bank_weed[t] = seeds_produced_weed
+    seed_bank_grass[t] = seeds_produced_grass
+# Plotting
+plt.plot(seed_bank_weed, label='Weed Seed Bank')
+plt.plot(seed_bank_grass, label='Grass Seed Bank')
+plt.xlabel('Time Yrs')
+plt.ylabel('Seed Bank Size')
+plt.legend()
+plt.show()
+
+
+
+
+
+Source:
+Maxwell, B. D., & Sheley, R. L. (1997). Noxious weed population dynamics education model. Weed Technology, 11(1), 182-188. https://doi.org/10.1017/S0890037X00041555
+
+
